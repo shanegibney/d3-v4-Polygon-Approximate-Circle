@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<style type="text/css">
+  body {
+    font-family: avenir next, sans-serif;
+    font-size: 12px;
+  }
+
+  .zoom {
+    cursor: move;
+    fill: none;
+    pointer-events: all;
+  }
+
+  circle {
+    fill: red;
+    fill-opacity: 1.0;
+  }
+
+  .axis {
+    stroke-width: 0.5px;
+    stroke: #888;
+    font: 10px avenir next, sans-serif;
+  }
+
+  .axis>path {
+    stroke: #888;
+  }
+
+  .slider {
+    margin: 0px auto;
+  }
+
+  input {
+    margin: 0px auto;
+  }
+</style>
+
+<body>
+  <script src="https://d3js.org/d3.v4.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/3.16.2/math.min.js"></script>
+  <div class="slider">
+    <input id="slider" type="range" min="3" max="50" step="1" value="3">
+  </div>
+  <script src="https://d3js.org/d3.v4.min.js"></script>
+
+  <script>
+    var w = 500;
+    var h = 250;
+    var n = 3;
+    var r = h / 2 - 201
+    var coords = [];
+
+    function points() {
+      coords = []; //Clear Coords Array
+
+      for (var i = 0; i < n; i++) {
+        var p_i = {};
+        p_i.x = w / 2 + r * math.cos((2 * math.pi / n) * i);
+        p_i.y = h / 2 - r * math.sin((2 * math.pi / n) * i);
+        p_i.id = i;
+        coords.push(p_i);
+      }
+    };
+
+    points(); //Generate Points
+
+    var svg = d3.select('body') //SVG Canvas
+      .append('svg')
+      .attr('width', w)
+      .attr('height', h);
+
+    var approx_tri = svg.selectAll('polygon') //Draw Triangles
+      .data(coords, function(d) {
+        return d;
+      })
+      .enter()
+      .append('polygon')
+      .attr('points', function(d, i) {
+        if (i != n - 1) {
+          return w / 2 + ',' + h / 2 + ' ' + d.x + ',' + d.y + ' ' + coords[i + 1].x + ',' + coords[i + 1].y;
+        } else {
+          return w / 2 + ',' + h / 2 + ' ' + d.x + ',' + d.y + ' ' + coords[0].x + ',' + coords[0].y;
+        }
+      })
+      .attr('fill', 'Transparent')
+      .attr('stroke', 'gray')
+      .attr('stroke-width', w / 350);
+
+    var approx_pts = svg.selectAll('circle_points') //Construct Approx Points
+      .data(coords, function(d) {
+        return d;
+      })
+      .enter()
+      .append('circle')
+      .attr('cx', function(d) {
+        return d.x;
+      })
+      .attr('cy', function(d) {
+        return d.y;
+      })
+      .attr('r', 4)
+      .attr('fill', 'red');
+
+    d3.select('#slider')
+      .on('input', function() {
+        n = +this.value;
+        update(n);
+      });
+
+    function update(n) {
+      points();
+
+      d3.selectAll("polygon").remove();
+      var approx_tri = svg.selectAll('polygon') //Draw Triangles
+        .data(coords)
+
+      approx_tri.exit().remove();
+
+      approx_tri.enter()
+        .append('polygon')
+        .attr('points', function(d, i) {
+          if (i != n - 1) {
+            return w / 2 + ',' + h / 2 + ' ' + d.x + ',' + d.y + ' ' + coords[i + 1].x + ',' + coords[i + 1].y;
+          } else {
+            return w / 2 + ',' + h / 2 + ' ' + d.x + ',' + d.y + ' ' + coords[0].x + ',' + coords[0].y;
+          }
+        })
+        .attr('fill', 'Transparent')
+        .attr('stroke', 'gray')
+        .attr('stroke-width', w / 350);
+
+
+      d3.selectAll("circle").remove();
+      var approx_pts = svg.selectAll('circle_points') //Construct Approx Points
+        .data(coords);
+
+      approx_pts.exit().remove();
+
+      approx_pts.enter()
+        .append('circle')
+        .attr('cx', function(d) {
+          return d.x;
+        })
+        .attr('cy', function(d) {
+          return d.y;
+        })
+        .attr('r', 4)
+        .attr('fill', 'red');
+    };
+  </script>
+</body>
